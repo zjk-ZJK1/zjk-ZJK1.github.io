@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>院校查询 - 高考志愿推荐系统</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <style>
+        .school-card {
+            transition: transform 0.3s;
+            margin-bottom: 20px;
+        }
+        .school-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .school-feature {
+            margin-right: 10px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        .feature-985 {
+            background-color: #ff85a2;
+            color: white;
+        }
+        .feature-211 {
+            background-color: #85c1ff;
+            color: white;
+        }
+        .search-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">高考志愿推荐系统</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/recommend">志愿推荐</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/schools">院校查询</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/favorites">我的收藏</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">退出登录</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">院校查询</h1>
+        
+        <div class="search-section">
+            <form id="search-form">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="school-name">学校名称</label>
+                            <input type="text" class="form-control" id="school-name" placeholder="请输入学校名称">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="province">省份</label>
+                            <select class="form-control" id="province">
+                                <option value="">全部省份</option>
+                                <!-- 省份列表将通过AJAX加载 -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>学校类型</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_985" value="1">
+                                <label class="form-check-label" for="is_985">985工程</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_211" value="1">
+                                <label class="form-check-label" for="is_211">211工程</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary px-5">查询</button>
+                    <button type="reset" class="btn btn-outline-secondary ml-2">重置</button>
+                </div>
+            </form>
+        </div>
+        
+        <div id="schools-container" class="row">
+            <!-- 学校列表将在这里动态生成 -->
+        </div>
+        
+        <nav aria-label="分页导航" class="mt-4">
+            <ul class="pagination justify-content-center" id="pagination">
+                <!-- 分页控件将在这里动态生成 -->
+            </ul>
+        </nav>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        let currentPage = 1;
+        const pageSize = 12;
+        let totalPages = 0;
+        
+        $(document).ready(function() {
+            // 加载省份列表
+            loadProvinces();
+            
+            // 加载学校列表
+            loadSchools(1);
+            
+            // 提交查询表单
+            $('#search-form').on('submit', function(e) {
+                e.preventDefault();
+                currentPage = 1;
+                loadSchools(currentPage);
+            });
+            
+            // 重置按钮
+            $('#search-form button[type="reset"]').on('click', function() {
+                setTimeout(function() {
+                    currentPage = 1;
+                    loadSchools(currentPage);
+                }, 10);
+            });
+            
+            // 分页点击事件
+            $(document).on('click', '.page-link', function(e) {
+                e.preventDefault();
+                const page = $(this).data('page');
+                if (page && page !== currentPage) {
+                    currentPage = page;
+                    loadSchools(currentPage);
+                }
+            });
+        });
+        
+        function loadProvinces() {
+            axios.get('/school/provinces')
+                .then(function(response) {
+                    if (response.data.status === 'success') {
+                        const provinces = response.data.data;
+                        let options = '<option value="">全部省份</option>';
+                        provinces.forEach(function(province) {
+                            options += `<option value="${province.province_id}">${province.ST_province_name}</option>`;
+                        });
+                        $('#province').html(options);
+                    }
+                })
+                .catch(function(error) {
+                    console.error('加载省份失败:', error);
+                });
+        }
+        
+        function loadSchools(page) {
+            // 获取查询参数
+            const name = $('#school-name').val();
+            const provinceId = $('#province').val();
+            const is985 = $('#is_985').is(':checked') ? '1' : '';
+            const is211 = $('#is_211').is(':checked') ? '1' : '';
+            
+            // 构建请求参数
+            const params = {
+                page: page,
+                size: pageSize,
+                name: name,
+                province_id: provinceId,
+                is_985: is985,
+                is_211: is211
+            };
+            
+            axios.get('/school/list', { params: params })
+                .then(function(response) {
+                    if (response.data.status === 'success') {
+                        const schools = response.data.data.schools;
+                        const total = response.data.data.total;
+                        totalPages = Math.ceil(total / pageSize);
+                        
+                        displaySchools(schools);
+                        updatePagination(page, totalPages);
+                    }
+                })
+                .catch(function(error) {
+                    console.error('加载学校列表失败:', error);
+                    alert('加载学校列表失败，请重试');
+                });
+        }
+        
+        function displaySchools(schools) {
+            const container = $('#schools-container');
+            container.empty();
+            
+            if (schools.length === 0) {
+                container.html('<div class="col-12 text-center py-5"><h4>没有找到符合条件的学校</h4></div>');
+                return;
+            }
+            
+            schools.forEach(function(school) {
+                const card = $(`
+                    <div class="col-md-4">
+                        <div class="card school-card">
+                            <div class="card-body">
+                                <h5 class="card-title">${school.name}</h5>
+                                <div class="mb-2">
+                                    ${school.f985 === '1' ? '<span class="school-feature feature-985">985</span>' : ''}
+                                    ${school.f211 === '1' ? '<span class="school-feature feature-211">211</span>' : ''}
+                                </div>
+                                <p class="card-text">隶属: ${school.belong || '未知'}</p>
+                                <p class="card-text">地址: ${school.address || '未知'}</p>
+                                <div class="text-right">
+                                    <a href="/school_detail/${school.school_id}" class="btn btn-primary">查看详情</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                
+                container.append(card);
+            });
+        }
+        
+        function updatePagination(currentPage, totalPages) {
+            const pagination = $('#pagination');
+            pagination.empty();
+            
+            if (totalPages <= 1) {
+                return;
+            }
+            
+            // 添加"上一页"按钮
+            const prevDisabled = currentPage === 1 ? 'disabled' : '';
+            pagination.append(`
+                <li class="page-item ${prevDisabled}">
+                    <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="上一页">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            `);
+            
+            // 添加页码按钮
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            
+            if (endPage - startPage < 4) {
+                startPage = Math.max(1, endPage - 4);
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const active = i === currentPage ? 'active' : '';
+                pagination.append(`
+                    <li class="page-item ${active}">
+                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                    </li>
+                `);
+            }
+            
+            // 添加"下一页"按钮
+            const nextDisabled = currentPage === totalPages ? 'disabled' : '';
+            pagination.append(`
+                <li class="page-item ${nextDisabled}">
+                    <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="下一页">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            `);
+        }
+    </script>
+</body>
+</html> 

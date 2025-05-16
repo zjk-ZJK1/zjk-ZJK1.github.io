@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html class="x-admin-sm">
+    
+    <head>
+        <meta charset="UTF-8">
+        <title>用户列表</title>
+        <meta name="renderer" content="webkit">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi" />
+        <link rel="stylesheet" href="{{ url_for('static',filename='css/font.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static',filename='css/xadmin.css') }}">
+        <script src="{{ url_for('static',filename='lib/layui/layui.js') }}" charset="utf-8"></script>
+        <script type="text/javascript" src="{{ url_for('static',filename='js/xadmin.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static',filename='js/jquery.min.js') }}"></script>
+        <style>
+            /* 苹果科技风格 - 基础样式 */
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+                background-color: #f5f5f7;
+                color: #1d1d1f;
+                line-height: 1.5;
+                margin: 0;
+                padding: 0;
+            }
+            
+            /* 容器样式 - 修复布局问题 */
+            .layui-fluid {
+                padding: 15px;
+                box-sizing: border-box;
+            }
+            
+            .layui-row {
+                margin: 0;
+            }
+            
+            .layui-col-md12 {
+                padding: 0;
+            }
+            
+            /* 一体化卡片设计 */
+            .layui-card {
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+                background: white;
+                border: none;
+                overflow: hidden;
+                margin-bottom: 0;
+            }
+            
+            /* 整合的头部区域 */
+            .header-section {
+                background-color: white;
+                padding: 15px 20px;
+                border-bottom: 1px solid #f0f0f0;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+            
+            /* 搜索表单 */
+            .search-form {
+                display: flex;
+                align-items: center;
+                margin: 0;
+                flex: 1;
+            }
+            
+            .layui-input-inline {
+                margin-right: 10px;
+                width: auto !important;
+            }
+            
+            .layui-input {
+                height: 38px;
+                border-radius: 8px;
+                border: 1px solid #d2d2d7;
+                background-color: rgba(255, 255, 255, 0.8);
+                padding: 0 15px;
+                transition: all 0.3s;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+                width: 200px;
+            }
+            
+            .layui-input:focus {
+                border-color: #0071e3;
+                box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2);
+                outline: none;
+            }
+            
+            /* 按钮样式 */
+            .layui-btn {
+                border-radius: 8px;
+                height: 38px;
+                line-height: 38px;
+                padding: 0 20px;
+                font-size: 14px;
+                font-weight: 500;
+                box-shadow: none;
+                transition: all 0.3s;
+            }
+            
+            .search-btn {
+                background-color: #0071e3;
+                color: white;
+                border: none;
+            }
+            
+            .search-btn:hover {
+                background-color: #0077ed;
+                box-shadow: 0 2px 8px rgba(0, 113, 227, 0.3);
+            }
+            
+            .add-btn {
+                background-color: #0071e3;
+                color: white;
+                border: none;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                margin-left: 15px;
+            }
+            
+            .add-btn:hover {
+                background-color: #0077ed;
+                box-shadow: 0 2px 8px rgba(0, 113, 227, 0.3);
+            }
+            
+            .add-btn i {
+                margin-right: 6px;
+                font-size: 16px;
+            }
+            
+            /* 表格区域 */
+            .table-section {
+                padding: 0;
+                margin: 0;
+            }
+            
+            /* 表格样式 */
+            .layui-table {
+                margin: 0;
+                border: none;
+                background-color: transparent;
+            }
+            
+            .layui-table thead tr {
+                background-color: #f5f5f7;
+            }
+            
+            .layui-table thead th {
+                font-weight: 500;
+                font-size: 14px;
+                color: #1d1d1f;
+                padding: 15px;
+                text-align: left;
+                border: none;
+                border-bottom: 1px solid #e6e6e6;
+            }
+            
+            .layui-table tbody tr {
+                background-color: white;
+                transition: background-color 0.3s;
+            }
+            
+            .layui-table tbody tr:hover {
+                background-color: #f8f8fa;
+            }
+            
+            .layui-table td {
+                padding: 15px;
+                font-size: 14px;
+                border: none;
+                border-bottom: 1px solid #f5f5f7;
+            }
+            
+            .layui-table tr:last-child td {
+                border-bottom: none;
+            }
+            
+            /* 操作按钮样式增强 */
+            .td-manage {
+                white-space: nowrap;
+                text-align: center;
+            }
+            
+            .td-manage a {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 36px;
+                height: 36px;
+                margin: 0 4px;
+                border-radius: 50%;
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            }
+            
+            /* 编辑按钮 - 蓝色主题 */
+            .td-manage a:first-child {
+                background-color: #e8f1fd;
+                color: #0071e3;
+            }
+            
+            .td-manage a:first-child:hover {
+                background-color: #0071e3;
+                color: white;
+                box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+                transform: translateY(-2px);
+            }
+            
+            /* 删除按钮 - 红色主题 */
+            .td-manage a:last-child {
+                background-color: #fee7e7;
+                color: #ff3b30;
+            }
+            
+            .td-manage a:last-child:hover {
+                background-color: #ff3b30;
+                color: white;
+                box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+                transform: translateY(-2px);
+            }
+            
+            /* 图标样式调整 */
+            .td-manage .layui-icon {
+                font-size: 18px;
+                font-weight: bold;
+            }
+            
+            /* 波纹效果 */
+            .td-manage a::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 5px;
+                height: 5px;
+                background: rgba(255, 255, 255, 0.8);
+                opacity: 0;
+                border-radius: 100%;
+                transform: scale(1, 1) translate(-50%, -50%);
+                transform-origin: 50% 50%;
+            }
+            
+            .td-manage a:active::after {
+                animation: ripple 0.5s ease-out;
+            }
+            
+            @keyframes ripple {
+                0% {
+                    opacity: 1;
+                    transform: scale(0, 0) translate(-50%, -50%);
+                }
+                100% {
+                    opacity: 0;
+                    transform: scale(20, 20) translate(-50%, -50%);
+                }
+            }
+            
+            /* 给表格行添加更炫的动画效果 */
+            .layui-table tbody tr {
+                animation: fadeIn 0.5s ease forwards;
+                animation-delay: calc(var(--row-index) * 0.05s);
+                transform-origin: center left;
+            }
+            
+            /* 工具提示样式 */
+            .td-manage a::before {
+                content: attr(title);
+                position: absolute;
+                bottom: -30px;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 5px 10px;
+                border-radius: 4px;
+                background-color: rgba(0, 0, 0, 0.8);
+                color: white;
+                font-size: 12px;
+                white-space: nowrap;
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s ease;
+                pointer-events: none;
+            }
+            
+            .td-manage a:hover::before {
+                opacity: 1;
+                visibility: visible;
+                bottom: -40px;
+            }
+            
+            /* 调整删除确认弹窗样式 */
+            .layui-layer-molv .layui-layer-title {
+                background-color: #1d1d1f !important;
+                color: white !important;
+                border-radius: 12px 12px 0 0 !important;
+                border: none !important;
+            }
+            
+            .layui-layer-molv .layui-layer-btn {
+                border-radius: 0 0 12px 12px !important;
+            }
+            
+            .layui-layer-molv .layui-layer-btn a {
+                border-radius: 8px !important;
+            }
+            
+            .layui-layer-molv .layui-layer-btn .layui-layer-btn0 {
+                background-color: #ff3b30 !important;
+                border-color: #ff3b30 !important;
+            }
+            
+            .layui-layer-molv .layui-layer-btn .layui-layer-btn1 {
+                background-color: #f5f5f7 !important;
+                color: #1d1d1f !important;
+            }
+            
+            /* 分页样式 */
+            #lafite_pages {
+                padding: 20px;
+                text-align: center;
+            }
+            
+            .layui-laypage a, 
+            .layui-laypage span {
+                border-radius: 6px;
+                margin: 0 3px;
+                padding: 0 12px;
+                height: 32px;
+                line-height: 32px;
+            }
+            
+            .layui-laypage .layui-laypage-curr .layui-laypage-em {
+                border-radius: 6px;
+                background-color: #0071e3 !important;
+            }
+            
+            /* 动画效果 */
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            .layui-table tbody tr {
+                animation: fadeIn 0.3s ease-out forwards;
+                animation-delay: calc(var(--row-index, 0) * 0.05s);
+                opacity: 0;
+            }
+            
+            /* 调整卡片内部布局 */
+            .layui-card-body {
+                padding: 0;
+            }
+            
+            /* 确保表格占满整个容器 */
+            .layui-table-view {
+                margin: 0;
+            }
+
+            /* 性别图标样式 */
+            .gender-icon {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                font-size: 18px;
+                transition: all 0.3s;
+            }
+
+            /* 男性图标 - 蓝色主题 */
+            .gender-male {
+                background-color: #e8f1fd;
+                color: #0071e3;
+            }
+
+            .gender-male:hover {
+                background-color: #0071e3;
+                color: white;
+                transform: scale(1.1);
+            }
+
+            /* 女性图标 - 粉色主题 */
+            .gender-female {
+                background-color: #feeaef;
+                color: #ff2d55;
+            }
+
+            .gender-female:hover {
+                background-color: #ff2d55;
+                color: white;
+                transform: scale(1.1);
+            }
+
+            /* 未知性别图标 - 灰色主题 */
+            .gender-unknown {
+                background-color: #f2f2f2;
+                color: #8e8e93;
+            }
+
+            .gender-unknown:hover {
+                background-color: #8e8e93;
+                color: white;
+                transform: scale(1.1);
+            }
+
+            /* 给图标添加提示文本 */
+            .gender-icon:before {
+                content: attr(data-title);
+                position: absolute;
+                top: -30px;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 12px;
+                white-space: nowrap;
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s;
+            }
+
+            .gender-icon:hover:before {
+                opacity: 1;
+                visibility: visible;
+                top: -35px;
+            }
+        </style>
+    </head>
+    
+    <body>
+        <div class="layui-fluid">
+            <div class="layui-row">
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <!-- 整合的头部区域 -->
+                        <div class="header-section">
+                            <form class="search-form">
+                                <div class="layui-input-inline">
+                                    <input type="text" name="username" placeholder="用户名" autocomplete="off" class="layui-input">
+                                </div>
+                                
+                                <button class="layui-btn search-btn" lay-submit="" lay-filter="sreach">查询</button>
+                                
+                                <a class="layui-btn add-btn" onclick="xadmin.open('新增用户','/adduser',600,500)">
+                                    <i class="layui-icon">&#xe654;</i>新增用户
+                                </a>
+                            </form>
+                        </div>
+
+                        <!-- 表格区域 -->
+                        <div class="table-section">
+                            <table class="layui-table">
+                                <thead>
+                                    <tr>
+                                        <th>用户编号</th>
+                                        <th>用户名</th>
+                                        <th>密码</th>
+                                        <th>真实姓名</th>
+                                        <th>性别</th>
+                                        <th>年龄</th>
+                                        <th>手机号</th>
+                                        <th>邮箱</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- 表格数据将通过AJAX加载 -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- 分页区域 -->
+                        <div id="lafite_pages"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script>
+        layui.use(['laypage', 'laydate', 'form'],
+        function() {
+            var laydate = layui.laydate;
+            var laypage = layui.laypage;
+            var form = layui.form;
+
+            // 初始化加载数据
+            loadData({
+                username: '',
+                page: 1,
+                limit: 20
+            });
+
+            // 监听搜索提交
+            form.on('submit(sreach)', function(data){
+                loadData({
+                    username: data.field.username,
+                    page: 1,
+                    limit: 20
+                });
+                return false;
+            });
+
+            // 分页事件
+            laypage.render({
+                elem: 'lafite_pages',
+                count: 0,
+                theme: '#0071e3',
+                jump: function(obj, first) {
+                    if(!first){
+                        loadData({
+                            username: $('input[name="username"]').val(),
+                            page: obj.curr,
+                            limit: obj.limit
+                        });
+                    }
+                }
+            });
+        });
+
+        // 加载数据方法
+        function loadData(params) {
+            $.ajax({
+                url: '/user/userlist',
+                method: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify(params),
+                success: function(response) {
+                    // 清空表格内容
+                    $('tbody').empty();
+                    
+                    // 遍历响应数据并添加到表格
+                    $.each(response.data, function(index, item) {
+                        var tr = $('<tr></tr>');
+                        // 设置行动画延迟的变量
+                        tr.css('--row-index', index);
+                        
+                        tr.append('<td>' + (index + 1) + '</td>');
+                        tr.append('<td>' + item.username + '</td>');
+                        tr.append('<td>' + item.password + '</td>');
+                        tr.append('<td>' + item.nickname + '</td>');
+                        tr.append('<td>' + createGenderIcon(item.sex) + '</td>');
+                        tr.append('<td>' + item.age + '</td>');
+                        tr.append('<td>' + item.phone + '</td>');
+                        tr.append('<td>' + item.email + '</td>');
+                        tr.append('<td class="td-manage">' +
+                            '<a onclick="layer.open({type:2,title:\'编辑用户\',area:[\'600px\',\'500px\'],content:\'/user/edituser?id=\'+'+item.id+'})" href="javascript:;" title="编辑">' +
+                            '<i class="layui-icon">&#xe601;</i>' +
+                            '</a>' +
+                            '<a title="删除" onclick="member_del(this,' + item.id + ')" href="javascript:;">' +
+                            '<i class="layui-icon">&#xe640;</i>' +
+                            '</a>' +
+                            '</td>');
+                        $('tbody').append(tr);
+                    });
+                    
+                    // 更新分页总数
+                    layui.laypage.render({
+                        elem: 'lafite_pages',
+                        count: response.total,
+                        limit: params.limit,
+                        curr: params.page,
+                        theme: '#0071e3'
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.log('Error: ' + error);
+                    layer.msg('加载数据失败', {icon: 2});
+                }
+            });
+        }
+
+        /*用户-删除*/
+        function member_del(obj, id) {
+            layer.confirm('是否确认删除？',
+            {title:"删除", skin: 'layui-layer-molv'},
+            function(index) {
+                //发异步删除数据
+                $.ajax({
+                    url: '/user/delete/' + id,
+                    method: 'POST',
+                    success: function(res) {
+                        if(res.code == 200) {
+                            $(obj).parents("tr").remove();
+                            layer.msg('已删除!', {
+                                icon: 1,
+                                time: 1000
+                            });
+                        } else {
+                            layer.msg('删除失败!', {
+                                icon: 2,
+                                time: 1000
+                            });
+                        }
+                    },
+                    error: function() {
+                        layer.msg('删除失败!', {
+                            icon: 2,
+                            time: 1000
+                        });
+                    }
+                });
+            });
+        }
+
+        function createGenderIcon(sex) {
+            if (sex === '男') {
+                return '<div class="gender-icon gender-male" data-title="男性"><i class="layui-icon">&#xe662;</i></div>';
+            } else if (sex === '女') {
+                return '<div class="gender-icon gender-female" data-title="女性"><i class="layui-icon">&#xe661;</i></div>';
+            } else {
+                return '<div class="gender-icon gender-unknown" data-title="未知"><i class="layui-icon">&#xe60c;</i></div>';
+            }
+        }
+    </script>
+</html>

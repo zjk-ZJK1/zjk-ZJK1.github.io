@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高考志愿推荐</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <style>
+        .recommendation-card {
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        .recommendation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .score-tag {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .school-feature {
+            margin-right: 10px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        .feature-985 {
+            background-color: #ff85a2;
+            color: white;
+        }
+        .feature-211 {
+            background-color: #85c1ff;
+            color: white;
+        }
+        .form-section {
+            background-color: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">高考志愿推荐系统</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/recommend">志愿推荐</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/schools">院校查询</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/favorites">我的收藏</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">退出登录</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">高考志愿智能推荐</h1>
+        
+        <div class="form-section">
+            <h3 class="mb-4">填写您的高考信息</h3>
+            <form id="exam-info-form">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="score">高考分数</label>
+                            <input type="number" class="form-control" id="score" required placeholder="请输入您的高考分数">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>科目类型</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="subject_type" id="subject_type_science" value="理科" checked>
+                                <label class="form-check-label" for="subject_type_science">理科</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="subject_type" id="subject_type_liberal" value="文科">
+                                <label class="form-check-label" for="subject_type_liberal">文科</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="batch">录取批次</label>
+                            <select class="form-control" id="batch" required>
+                                <option value="">请选择批次</option>
+                                <option value="本科一批">本科一批</option>
+                                <option value="本科二批">本科二批</option>
+                                <option value="专科批">专科批</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>偏好设置（可选）</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="pref_985" value="985">
+                                <label class="form-check-label" for="pref_985">985高校</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="pref_211" value="211">
+                                <label class="form-check-label" for="pref_211">211高校</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg px-5">获取推荐结果</button>
+                </div>
+            </form>
+        </div>
+        
+        <div id="recommendations-section" style="display: none;">
+            <h3 class="mb-4">为您推荐的院校</h3>
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> 以下院校是根据您的高考成绩和偏好智能推荐的，仅供参考。
+            </div>
+            
+            <div id="recommendations-container" class="row">
+                <!-- 推荐结果将在这里动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 推荐学校卡片模板 -->
+    <template id="school-card-template">
+        <div class="col-md-4">
+            <div class="card recommendation-card">
+                <div class="card-body">
+                    <h5 class="card-title school-name">北京大学</h5>
+                    <div class="mb-2">
+                        <span class="school-feature feature-985">985</span>
+                        <span class="school-feature feature-211">211</span>
+                    </div>
+                    <p class="card-text">
+                        <span class="badge badge-success score-tag">最低分: <span class="min-score">650</span></span>
+                        <span class="badge badge-info ml-2 score-tag">平均分: <span class="avg-score">680</span></span>
+                    </p>
+                    <p class="card-text school-type">录取批次: 本科一批</p>
+                    <p class="card-text match-degree">匹配度: <span class="text-danger">98%</span></p>
+                    <div class="d-flex justify-content-between mt-3">
+                        <a href="#" class="btn btn-outline-primary school-detail-link">查看详情</a>
+                        <button class="btn btn-outline-danger favorite-btn">收藏</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // 提交表单获取推荐结果
+            $('#exam-info-form').on('submit', function(e) {
+                e.preventDefault();
+                submitExamInfo();
+            });
+            
+            // 点击收藏按钮
+            $(document).on('click', '.favorite-btn', function() {
+                const schoolId = $(this).data('school-id');
+                addToFavorites(schoolId);
+            });
+        });
+        
+        function submitExamInfo() {
+            const score = $('#score').val();
+            const subjectType = $('input[name="subject_type"]:checked').val();
+            const batch = $('#batch').val();
+            
+            // 收集偏好信息
+            const preferences = [];
+            if ($('#pref_985').is(':checked')) preferences.push('985');
+            if ($('#pref_211').is(':checked')) preferences.push('211');
+            
+            const data = {
+                score: parseInt(score),
+                subject_type: subjectType,
+                batch: batch,
+                preferences: preferences
+            };
+            
+            // 显示加载中
+            const loadingMsg = $('<div class="text-center my-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">正在为您推荐最佳院校...</p></div>');
+            $('#recommendations-container').html(loadingMsg);
+            $('#recommendations-section').show();
+            
+            // 获取推荐结果
+            axios.post('/recommend/get_recommendations', data)
+                .then(function(response) {
+                    if (response.data.status === 'success') {
+                        // 修改这里 - API返回格式已更改
+                        const recommendations = response.data.data; // 直接使用data数组
+                        displayRecommendations(recommendations);
+                    } else {
+                        alert(response.data.message || '获取推荐结果失败');
+                        $('#recommendations-section').hide();
+                    }
+                })
+                .catch(function(error) {
+                    console.error('获取推荐结果失败:', error);
+                    alert('获取推荐结果失败，请重试');
+                    $('#recommendations-section').hide();
+                });
+        }
+        
+        function displayRecommendations(recommendations) {
+            const container = $('#recommendations-container');
+            container.empty();
+            
+            const template = document.getElementById('school-card-template');
+            
+            recommendations.forEach(function(school) {
+                const clone = document.importNode(template.content, true);
+                
+                // 填充学校信息
+                clone.querySelector('.school-name').textContent = school.ST_School_name;
+                clone.querySelector('.min-score').textContent = school.ST_Min;
+                clone.querySelector('.avg-score').textContent = school.ST_Average || '-';
+                clone.querySelector('.school-type').textContent = `录取批次: ${school.ST_Local_batch_name || '-'}`;
+                
+                // 计算匹配度百分比 (based on recommendation_score, from 0-100)
+                const matchPercentage = Math.min(Math.round(school.similarity), 100);
+                clone.querySelector('.match-degree').innerHTML = `匹配度: <span class="text-danger">${matchPercentage}%</span>`;
+                
+                // 设置链接和按钮属性
+                clone.querySelector('.school-detail-link').href = `/school_detail/${school.school_id}`;
+                clone.querySelector('.favorite-btn').dataset.schoolId = school.school_id;
+                
+                // 添加985/211标签
+                const features = clone.querySelector('.mb-2');
+                if (!school.f985 || school.f985 === '0') {
+                    features.querySelector('.feature-985').style.display = 'none';
+                }
+                if (!school.f211 || school.f211 === '0') {
+                    features.querySelector('.feature-211').style.display = 'none';
+                }
+                
+                container.append(clone);
+            });
+            
+            // 显示推荐结果区域
+            $('#recommendations-section').show();
+            
+            // 滚动到推荐结果区域
+            $('html, body').animate({
+                scrollTop: $('#recommendations-section').offset().top - 100
+            }, 500);
+        }
+        
+        function addToFavorites(schoolId) {
+            axios.post('/recommend/save_favorite', { school_id: schoolId })
+                .then(function(response) {
+                    if (response.data.status === 'success') {
+                        alert('收藏成功！');
+                    } else {
+                        alert(response.data.message || '收藏失败');
+                    }
+                })
+                .catch(function(error) {
+                    console.error('收藏失败:', error);
+                    alert('收藏失败，请重试');
+                });
+        }
+    </script>
+</body>
+</html> 

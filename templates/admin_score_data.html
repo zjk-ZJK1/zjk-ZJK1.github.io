@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>分数线数据管理</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="{{ url_for('static',filename='lib/layui/css/layui.css') }}" media="all">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/admin.css') }}" media="all">
+</head>
+<body>
+
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-header">分数线数据管理</div>
+        <div class="layui-card-body">
+            <div class="layui-form layui-form-pane" lay-filter="search-form">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">学校名称</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="school_name" placeholder="请输入学校名称" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">省份</label>
+                        <div class="layui-input-inline">
+                            <select name="province_id" id="province-select">
+                                <option value="">全部省份</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">年份</label>
+                        <div class="layui-input-inline">
+                            <select name="year">
+                                <option value="">全部年份</option>
+                                <option value="2023">2023</option>
+                                <option value="2022">2022</option>
+                                <option value="2021">2021</option>
+                                <option value="2020">2020</option>
+                                <option value="2019">2019</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <button class="layui-btn" lay-submit lay-filter="search">查询</button>
+                        <button class="layui-btn layui-btn-primary" id="reset-btn">重置</button>
+                    </div>
+                </div>
+            </div>
+            
+            <table id="score-table" lay-filter="score-table"></table>
+            
+            <script type="text/html" id="toolbar">
+                <div class="layui-btn-container">
+                    <button class="layui-btn layui-btn-sm" lay-event="import">批量导入</button>
+                    <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add">添加分数线</button>
+                </div>
+            </script>
+            
+            <script type="text/html" id="operation">
+                <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+                <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+            </script>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑分数线弹窗 -->
+<div id="edit-form-container" style="display: none; padding: 20px;">
+    <form class="layui-form" lay-filter="edit-form">
+        <input type="hidden" name="ST_id">
+        <div class="layui-form-item">
+            <label class="layui-form-label">学校</label>
+            <div class="layui-input-block">
+                <input type="text" name="ST_School_name" placeholder="学校名称" autocomplete="off" class="layui-input" disabled>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">省份</label>
+            <div class="layui-input-block">
+                <input type="text" name="Pro_name" placeholder="省份" autocomplete="off" class="layui-input" disabled>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">年份</label>
+            <div class="layui-input-block">
+                <select name="ST_Year">
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2021">2021</option>
+                    <option value="2020">2020</option>
+                    <option value="2019">2019</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">录取批次</label>
+            <div class="layui-input-block">
+                <input type="text" name="ST_Local_batch_name" placeholder="录取批次" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">科目类型</label>
+            <div class="layui-input-block">
+                <input type="text" name="ST_Type" placeholder="科目类型" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">最低分</label>
+            <div class="layui-input-block">
+                <input type="number" name="ST_Min" placeholder="最低分" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">平均分</label>
+            <div class="layui-input-block">
+                <input type="number" name="ST_Average" placeholder="平均分" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">最高分</label>
+            <div class="layui-input-block">
+                <input type="number" name="ST_Max" placeholder="最高分" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="save">保存</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="{{ url_for('static',filename='lib/layui/layui.js') }}"></script>
+<script>
+layui.use(['table', 'form', 'layer', 'jquery'], function(){
+    var table = layui.table,
+        form = layui.form,
+        layer = layui.layer,
+        $ = layui.jquery;
+    
+    // 加载省份数据
+    $.ajax({
+        url: '/school/provinces',
+        type: 'GET',
+        success: function(res) {
+            if (res.status === 'success') {
+                var provinces = res.data;
+                var options = '<option value="">全部省份</option>';
+                for (var i = 0; i < provinces.length; i++) {
+                    options += '<option value="' + provinces[i].id + '">' + provinces[i].name + '</option>';
+                }
+                $('#province-select').html(options);
+                form.render('select');
+            }
+        }
+    });
+    
+    // 初始化表格
+    table.render({
+        elem: '#score-table',
+        url: '/admin/api/score_data_list',
+        toolbar: '#toolbar',
+        defaultToolbar: ['filter', 'exports', 'print'],
+        cols: [[
+            {type: 'checkbox', fixed: 'left'},
+            {field: 'ST_id', title: 'ID', width: 80, sort: true},
+            {field: 'ST_School_name', title: '学校名称', width: 200},
+            {field: 'Pro_name', title: '省份', width: 100},
+            {field: 'ST_Year', title: '年份', width: 80},
+            {field: 'ST_Type', title: '科目类型', width: 120},
+            {field: 'ST_Local_batch_name', title: '录取批次', width: 120},
+            {field: 'ST_Min', title: '最低分', width: 100},
+            {field: 'ST_Average', title: '平均分', width: 100},
+            {field: 'ST_Max', title: '最高分', width: 100},
+            {title: '操作', width: 150, toolbar: '#operation', fixed: 'right'}
+        ]],
+        page: true,
+        limit: 15,
+        limits: [15, 30, 50, 100],
+        response: {
+            statusCode: 'success'
+        },
+        parseData: function(res) {
+            return {
+                "code": res.status,
+                "msg": res.message || '',
+                "count": res.data.total,
+                "data": res.data.scores
+            };
+        }
+    });
+    
+    // 表格工具栏事件
+    table.on('toolbar(score-table)', function(obj){
+        var checkStatus = table.checkStatus(obj.config.id);
+        switch(obj.event){
+            case 'import':
+                layer.msg('暂未实现批量导入功能');
+                break;
+            case 'add':
+                layer.msg('暂未实现添加功能');
+                break;
+        };
+    });
+    
+    // 行工具条事件
+    table.on('tool(score-table)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'edit'){
+            // 填充表单
+            form.val('edit-form', data);
+            
+            // 打开编辑弹窗
+            layer.open({
+                type: 1,
+                title: '编辑分数线数据',
+                area: ['500px', '680px'],
+                content: $('#edit-form-container'),
+                success: function() {
+                    form.render();
+                }
+            });
+        } else if(obj.event === 'del'){
+            layer.confirm('确定删除此条分数线数据吗？', function(index){
+                layer.msg('暂未实现删除功能');
+                layer.close(index);
+            });
+        }
+    });
+    
+    // 表单查询
+    form.on('submit(search)', function(data){
+        table.reload('score-table', {
+            where: data.field,
+            page: {
+                curr: 1
+            }
+        });
+        return false;
+    });
+    
+    // 重置按钮
+    $('#reset-btn').click(function(){
+        $('.layui-form-pane')[0].reset();
+        form.render();
+        table.reload('score-table', {
+            where: {},
+            page: {
+                curr: 1
+            }
+        });
+    });
+    
+    // 保存表单
+    form.on('submit(save)', function(data){
+        $.ajax({
+            url: '/admin/api/update_score',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data.field),
+            success: function(res) {
+                if (res.status === 'success') {
+                    layer.msg('保存成功');
+                    layer.closeAll('page');
+                    table.reload('score-table');
+                } else {
+                    layer.msg(res.message || '保存失败');
+                }
+            },
+            error: function() {
+                layer.msg('保存失败，请重试');
+            }
+        });
+        return false;
+    });
+});
+</script>
+
+</body>
+</html> 

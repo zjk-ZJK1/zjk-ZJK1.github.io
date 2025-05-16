@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高考志愿推荐系统</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --light-color: #f0f9ff;
+            --dark-color: #1e293b;
+            --gray-color: #e2e8f0;
+        }
+        
+        body {
+            font-family: 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: #334155;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        /* 导航栏样式 */
+        nav {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            margin-right: 0.5rem;
+        }
+        
+        .nav-links a {
+            color: var(--dark-color);
+            text-decoration: none;
+            margin-left: 1.5rem;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+        
+        .login-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .login-btn:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 4px;
+        }
+
+        .user-dropdown:hover .user-dropdown-content {
+            display: block;
+        }
+
+        .user-dropdown-content a {
+            color: var(--dark-color);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            text-align: left;
+        }
+
+        .user-dropdown-content a:hover {
+            background-color: var(--light-color);
+        }
+
+        .user-dropdown-button {
+            display: flex;
+            align-items: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--dark-color);
+            font-weight: 500;
+        }
+
+        .user-dropdown-button i {
+            margin-left: 0.5rem;
+        }
+        
+        /* 英雄区域样式 */
+        .hero {
+            display: flex;
+            align-items: center;
+            padding: 4rem 0;
+            background-color: white;
+        }
+        
+        .hero-content {
+            flex: 1;
+            padding-right: 2rem;
+        }
+        
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--dark-color);
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: #64748b;
+            margin-bottom: 2rem;
+        }
+        
+        .hero-image {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .hero-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .hero-cta {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        
+        .hero-cta:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        /* 功能区域样式 */
+        .features {
+            padding: 4rem 0;
+            background-color: var(--light-color);
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--dark-color);
+            margin-bottom: 3rem;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+        
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--dark-color);
+            margin-bottom: 1rem;
+        }
+        
+        .feature-description {
+            color: #64748b;
+        }
+        
+        /* 特色区域样式 */
+        .highlights {
+            padding: 4rem 0;
+        }
+        
+        .highlight-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4rem;
+        }
+        
+        .highlight-container:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+        
+        .highlight-image {
+            flex: 1;
+            padding: 0 2rem;
+        }
+        
+        .highlight-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .highlight-content {
+            flex: 1;
+            padding: 0 2rem;
+        }
+        
+        .highlight-title {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: var(--dark-color);
+            margin-bottom: 1.5rem;
+        }
+        
+        .highlight-description {
+            color: #64748b;
+            margin-bottom: 1.5rem;
+        }
+        
+        .highlight-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .highlight-link i {
+            margin-left: 0.5rem;
+            transition: transform 0.3s;
+        }
+        
+        .highlight-link:hover i {
+            transform: translateX(5px);
+        }
+        
+        /* 呼叫行动区域样式 */
+        .cta-section {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+        }
+        
+        .cta-title {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+        }
+        
+        .cta-description {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background-color: white;
+            color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        
+        .cta-button:hover {
+            background-color: var(--light-color);
+            transform: scale(1.05);
+        }
+        
+        /* 页脚样式 */
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 4rem 0 2rem;
+        }
+        
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .footer-column h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.75rem;
+        }
+        
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background-color: var(--primary-color);
+        }
+        
+        .footer-column ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .footer-column ul li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .footer-column ul li a {
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-column ul li a:hover {
+            color: white;
+        }
+        
+        .social-links {
+            display: flex;
+            margin-top: 1.5rem;
+        }
+        
+        .social-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            margin-right: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        .social-link:hover {
+            background-color: var(--primary-color);
+        }
+        
+        .copyright {
+            text-align: center;
+            color: #94a3b8;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* 个人信息页面样式 */
+        #profile-page {
+            display: none;
+            padding: 4rem 0;
+        }
+        
+        .profile-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+        
+        .profile-name {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .profile-role {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+        
+        .profile-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 2rem;
+        }
+        
+        .profile-section-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--dark-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--gray-color);
+        }
+        
+        .profile-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .profile-info-item {
+            margin-bottom: 1rem;
+        }
+        
+        .profile-info-label {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .profile-info-value {
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+        
+        .profile-actions {
+            text-align: center;
+            margin-top: 2rem;
+        }
+        
+        .profile-action-btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+            text-decoration: none;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-secondary {
+            background-color: var(--gray-color);
+            color: var(--dark-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #cbd5e1;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .hero {
+                flex-direction: column;
+            }
+            
+            .hero-content {
+                padding-right: 0;
+                text-align: center;
+                margin-bottom: 2rem;
+            }
+            
+            .highlight-container, .highlight-container:nth-child(even) {
+                flex-direction: column;
+            }
+            
+            .highlight-image, .highlight-content {
+                padding: 0;
+                margin-bottom: 2rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                高考志愿推荐系统
+            </a>
+            <div class="nav-links">
+                <a href="/">首页</a>
+                <a href="/recommend">志愿推荐</a>
+                <a href="/schools">院校查询</a>
+                <a href="/favorites">我的收藏</a>
+                <a href="/login" class="login-btn" id="login-btn">登录</a>
+                <div class="user-dropdown" id="user-dropdown" style="display: none;">
+                    <button class="user-dropdown-button">
+                        <span id="username-display">用户名</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="user-dropdown-content">
+                        <a href="#" id="show-profile-btn">个人信息</a>
+                        <a href="#" id="logout-btn">退出登录</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <div id="home-page" style="display: none;">
+        <section class="hero">
+            <div class="container hero-content">
+                <h1 class="hero-title">智能高考志愿推荐，<br>让填报更科学</h1>
+                <p class="hero-subtitle">基于大数据和人工智能技术，为您提供个性化的高考志愿推荐方案，助您迈入理想的大学殿堂。</p>
+                <a href="/login" class="hero-cta" id="hero-login-btn">立即开始</a>
+            </div>
+            <div class="hero-image">
+                <img src="https://img.freepik.com/free-vector/college-project-concept-illustration_114360-10211.jpg" alt="志愿推荐示意图">
+            </div>
+        </section>
+        
+        <section class="features">
+            <div class="container">
+                <h2 class="section-title">核心功能</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3 class="feature-title">智能志愿推荐</h3>
+                        <p class="feature-description">根据您的高考分数、地区和个人偏好，智能推荐最适合您的院校和专业选择。</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-school"></i>
+                        </div>
+                        <h3 class="feature-title">院校详细信息</h3>
+                        <p class="feature-description">查询全国高校的详细信息，包括历年分数线、专业设置、师资力量等关键数据。</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3 class="feature-title">协同过滤推荐</h3>
+                        <p class="feature-description">通过分析相似学生的选择，采用协同过滤算法为您提供更符合个性化需求的院校推荐。</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <h3 class="feature-title">历年录取分析</h3>
+                        <p class="feature-description">分析各高校历年的录取分数线和趋势，帮助您更准确地评估录取可能性。</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h3 class="feature-title">收藏喜爱院校</h3>
+                        <p class="feature-description">收藏您感兴趣的院校，方便随时查看和比较，制定最优的志愿填报策略。</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h3 class="feature-title">全终端支持</h3>
+                        <p class="feature-description">支持电脑、平板和手机等多种设备，随时随地访问系统，进行志愿填报规划。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="highlights">
+            <div class="container">
+                <div class="highlight-container">
+                    <div class="highlight-image">
+                        <img src="https://img.freepik.com/free-vector/college-university-students-group-young-happy-people-standing-isolated-white-background_575670-66.jpg" alt="智能推荐系统">
+                    </div>
+                    <div class="highlight-content">
+                        <h2 class="highlight-title">基于AI的志愿智能推荐</h2>
+                        <p class="highlight-description">我们的推荐系统采用先进的人工智能算法，综合考虑高考分数、地区批次线、个人兴趣爱好等多重因素，为考生提供最适合的院校和专业推荐。系统会根据历年录取数据，计算考生被各院校录取的概率，并以此为依据优化推荐结果。</p>
+                        <a href="/recommend" class="highlight-link">立即体验推荐系统 <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+                
+                <div class="highlight-container">
+                    <div class="highlight-content">
+                        <h2 class="highlight-title">全面的高校数据库</h2>
+                        <p class="highlight-description">我们收集了全国高校的详细信息，包括学校特色、专业设置、就业前景、师资力量等关键数据。您可以查询任何高校的历年分数线、招生计划、录取情况等信息，全方位了解心仪的学校，做出更明智的选择。</p>
+                        <a href="/schools" class="highlight-link">浏览院校库 <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    <div class="highlight-image">
+                        <img src="https://img.freepik.com/free-vector/students-watching-webinar-computer-studying-online_74855-15522.jpg" alt="数据可视化展示">
+                    </div>
+                </div>
+                
+                <div class="highlight-container">
+                    <div class="highlight-image">
+                        <img src="https://img.freepik.com/free-vector/people-analyzing-growth-charts_23-2148866843.jpg" alt="数据分析">
+                    </div>
+                    <div class="highlight-content">
+                        <h2 class="highlight-title">科学的志愿填报策略</h2>
+                        <p class="highlight-description">根据"冲一冲、稳一稳、保一保"的科学填报策略，我们的系统会自动为您生成合理的志愿填报方案，平衡风险与收益，最大化录取几率。同时，系统还会根据您的兴趣特长、职业规划等因素，推荐最适合的专业方向。</p>
+                        <a href="/schools" class="highlight-link">了解更多 <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="cta-section">
+            <div class="container">
+                <h2 class="cta-title">准备好开始您的志愿填报之旅了吗？</h2>
+                <p class="cta-description">立即注册使用我们的高考志愿推荐系统，让AI帮您规划未来，找到最适合您的大学和专业！</p>
+                <a href="/login" class="cta-button" id="cta-login-btn">立即开始</a>
+            </div>
+        </section>
+    </div>
+    
+    <div id="profile-page">
+        <div class="container">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h1 class="profile-name" id="profile-nickname">用户名</h1>
+                <p class="profile-role" id="profile-role">普通用户</p>
+            </div>
+            
+            <div class="profile-card">
+                <h2 class="profile-section-title">账号信息</h2>
+                <div class="profile-info-grid">
+                    <div class="profile-info-item">
+                        <div class="profile-info-label">用户名</div>
+                        <div class="profile-info-value" id="profile-username">-</div>
+                    </div>
+                    <div class="profile-info-item">
+                        <div class="profile-info-label">用户ID</div>
+                        <div class="profile-info-value" id="profile-id">-</div>
+                    </div>
+                    <div class="profile-info-item">
+                        <div class="profile-info-label">邮箱</div>
+                        <div class="profile-info-value" id="profile-email">-</div>
+                    </div>
+                    <div class="profile-info-item">
+                        <div class="profile-info-label">电话</div>
+                        <div class="profile-info-value" id="profile-phone">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="profile-card">
+                <h2 class="profile-section-title">个人信息</h2>
+                <div class="profile-info-grid">
+                    <div class="profile-info-item">
+                        <div class="profile-info-label">性别</div>
+                        <div class="profile-info-value" id="profile-sex">-</div>
+                    </div>
+                    <div class="profile-info-item">
+                        <div class="profile-info-label">年龄</div>
+                        <div class="profile-info-value" id="profile-age">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="profile-actions">
+                <a href="#" class="profile-action-btn btn-secondary" id="back-to-home-btn">返回首页</a>
+                <a href="#" class="profile-action-btn btn-primary" id="profile-logout-btn">退出登录</a>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-column">
+                    <h3>高考志愿推荐系统</h3>
+                    <p>致力于帮助高考学子科学填报志愿，找到最适合自己的大学和专业。</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-weixin"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-weibo"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-qq"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>功能导航</h3>
+                    <ul>
+                        <li><a href="/recommend">志愿推荐</a></li>
+                        <li><a href="/schools">院校查询</a></li>
+                        <li><a href="/favorites">我的收藏</a></li>
+                        <li><a href="/">系统首页</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>资源中心</h3>
+                    <ul>
+                        <li><a href="#">高考政策</a></li>
+                        <li><a href="#">填报指南</a></li>
+                        <li><a href="#">择校攻略</a></li>
+                        <li><a href="#">专业解析</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>关于我们</h3>
+                    <ul>
+                        <li><a href="#">系统介绍</a></li>
+                        <li><a href="#">联系我们</a></li>
+                        <li><a href="#">用户协议</a></li>
+                        <li><a href="#">隐私政策</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                © 2023 高考志愿推荐系统 - 让填报更科学
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const homePage = document.getElementById('home-page');
+            const profilePage = document.getElementById('profile-page');
+            const loginBtn = document.getElementById('login-btn');
+            const userDropdown = document.getElementById('user-dropdown');
+            const usernameDisplay = document.getElementById('username-display');
+            const logoutBtn = document.getElementById('logout-btn');
+            const profileLogoutBtn = document.getElementById('profile-logout-btn');
+            const showProfileBtn = document.getElementById('show-profile-btn');
+            const backToHomeBtn = document.getElementById('back-to-home-btn');
+            const heroLoginBtn = document.getElementById('hero-login-btn');
+            const ctaLoginBtn = document.getElementById('cta-login-btn');
+            
+            // 检查用户是否已登录
+            fetch('/user/checkLogin')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code === 200) {
+                        // 用户已登录
+                        loginBtn.style.display = 'none';
+                        userDropdown.style.display = 'inline-block';
+                        usernameDisplay.textContent = data.data.username;
+                        
+                        // 显示首页
+                        homePage.style.display = 'block';
+                        
+                        // 加载个人信息
+                        loadUserProfile(data.data);
+                    } else {
+                        // 用户未登录
+                        loginBtn.style.display = 'inline-block';
+                        userDropdown.style.display = 'none';
+                        
+                        // 显示首页
+                        homePage.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('检查登录状态失败:', error);
+                    homePage.style.display = 'block';
+                });
+            
+            // 加载用户个人信息
+            function loadUserProfile(userData) {
+                // 设置个人信息页面的数据
+                document.getElementById('profile-nickname').textContent = userData.nickname || userData.username;
+                document.getElementById('profile-role').textContent = userData.role;
+                document.getElementById('profile-username').textContent = userData.username;
+                document.getElementById('profile-id').textContent = userData.user_id;
+                
+                // 获取用户完整信息
+                fetch(`/user/getUserInfo?id=${userData.user_id}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.code === 200) {
+                            const userInfo = data.data;
+                            document.getElementById('profile-email').textContent = userInfo.email || '未设置';
+                            document.getElementById('profile-phone').textContent = userInfo.phone || '未设置';
+                            document.getElementById('profile-sex').textContent = userInfo.sex || '未设置';
+                            document.getElementById('profile-age').textContent = userInfo.age || '未设置';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('获取用户信息失败:', error);
+                    });
+            }
+            
+            // 显示个人信息页面
+            showProfileBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                homePage.style.display = 'none';
+                profilePage.style.display = 'block';
+            });
+            
+            // 返回首页
+            backToHomeBtn.addEventListener('click', function() {
+                profilePage.style.display = 'none';
+                homePage.style.display = 'block';
+            });
+            
+            // 退出登录功能
+            function logout() {
+                fetch('/user/logout')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.code === 200) {
+                            // 刷新页面
+                            window.location.reload();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('退出登录失败:', error);
+                    });
+            }
+            
+            // 注册退出登录事件
+            logoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                logout();
+            });
+            
+            profileLogoutBtn.addEventListener('click', function() {
+                logout();
+            });
+        });
+    </script>
+</body>
+</html>

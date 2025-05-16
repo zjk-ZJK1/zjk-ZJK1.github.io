@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>推荐历史管理</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="{{ url_for('static',filename='lib/layui/css/layui.css') }}" media="all">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/admin.css') }}" media="all">
+    <style>
+        .school-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #f0f0f0;
+            border-radius: 4px;
+        }
+        .school-item:hover {
+            background-color: #f8f8f8;
+        }
+        .school-name {
+            font-weight: bold;
+            color: #1E9FFF;
+        }
+        .school-score {
+            color: #FF5722;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-header">推荐历史管理</div>
+        <div class="layui-card-body">
+            <div class="layui-form layui-form-pane" lay-filter="search-form">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">用户ID</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="user_id" placeholder="请输入用户ID" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <button class="layui-btn" lay-submit lay-filter="search">查询</button>
+                        <button class="layui-btn layui-btn-primary" id="reset-btn">重置</button>
+                    </div>
+                </div>
+            </div>
+            
+            <table id="history-table" lay-filter="history-table"></table>
+            
+            <script type="text/html" id="toolbar">
+                <div class="layui-btn-container">
+                    <button class="layui-btn layui-btn-sm" lay-event="export">导出数据</button>
+                    <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="analyze">数据分析</button>
+                </div>
+            </script>
+            
+            <script type="text/html" id="operation">
+                <a class="layui-btn layui-btn-xs" lay-event="detail">查看详情</a>
+            </script>
+            
+            {% raw %}
+            <script type="text/html" id="recommendTpl">
+                {{# if(d.display_recommendations && d.display_recommendations.length > 0){ }}
+                    {{# layui.each(d.display_recommendations, function(index, item){ }}
+                        <div class="school-item">
+                            <p><span class="school-name">{{ item.name || '未知学校' }}</span></p>
+                            <p>匹配度: <span class="school-score">{{ item.similarity || 0 }}%</span></p>
+                            {{# if(item.min_score){ }}
+                                <p>最低分: {{ item.min_score }}</p>
+                            {{# } }}
+                        </div>
+                    {{# }); }}
+                    {{# if(d.recommendations_data && d.recommendations_data.length > d.display_recommendations.length){ }}
+                        <div class="layui-btn-xs layui-btn layui-btn-primary">
+                            还有{{ d.recommendations_data.length - d.display_recommendations.length }}所学校未显示
+                        </div>
+                    {{# } }}
+                {{# } else { }}
+                    <span>无推荐数据</span>
+                {{# } }}
+            </script>
+            {% endraw %}
+        </div>
+    </div>
+</div>
+
+<!-- 推荐详情弹窗 -->
+<div id="detail-container" style="display: none; padding: 20px;">
+    <div class="layui-collapse" lay-filter="detail-collapse" id="detail-content">
+        <!-- 动态生成内容 -->
+    </div>
+</div>
+
+<script src="{{ url_for('static',filename='lib/layui/layui.js') }}"></script>
+<script>
+layui.use(['table', 'form', 'layer', 'jquery', 'element'], function(){
+    var table = layui.table,
+        form = layui.form,
+        layer = layui.layer,
+        $ = layui.jquery,
+        element = layui.element;
+    
+    // 初始化表格
+    table.render({
+        elem: '#history-table',
+        url: '/admin/api/recommendation_history_list',
+        toolbar: '#toolbar',
+        defaultToolbar: ['filter', 'exports', 'print'],
+        cols: [[
+            {type: 'checkbox', fixed: 'left'},
+            {field: 'id', title: 'ID', width: 80, sort: true},
+            {field: 'user_id', title: '用户ID', width: 120},
+            {field: 'username', title: '用户名', width: 150},
+            {field: 'create_time', title: '推荐时间', width: 180, sort: true},
+            {title: '推荐结果预览', minWidth: 300, templet: '#recommendTpl'},
+            {title: '操作', width: 120, toolbar: '#operation', fixed: 'right'}
+        ]],
+        page: true,
+        limit: 10,
+        limits: [10, 20, 50, 100],
+        response: {
+            statusCode: 'success'
+        },
+        parseData: function(res) {
+            return {
+                "code": res.status,
+                "msg": res.message || '',
+                "count": res.data.total,
+                "data": res.data.histories
+            };
+        }
+    });
+    
+    // 表格工具栏事件
+    table.on('toolbar(history-table)', function(obj){
+        var checkStatus = table.checkStatus(obj.config.id);
+        switch(obj.event){
+            case 'export':
+                layer.msg('暂未实现导出功能');
+                break;
+            case 'analyze':
+                layer.msg('暂未实现数据分析功能');
+                break;
+        };
+    });
+    
+    // 行工具条事件
+    table.on('tool(history-table)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'detail'){
+            showRecommendationDetail(data);
+        }
+    });
+    
+    // 显示推荐详情
+    function showRecommendationDetail(data) {
+        // 动态生成推荐详情
+        var content = $('#detail-content');
+        content.empty();
+        
+        if (!data.recommendations_data || !data.recommendations_data.length) {
+            content.html('<div class="layui-text">无推荐数据</div>');
+            return;
+        }
+        
+        // 用户信息部分
+        content.append(`
+            <div class="layui-colla-item">
+                <h2 class="layui-colla-title">用户信息</h2>
+                <div class="layui-colla-content layui-show">
+                    <div class="layui-form">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">用户ID</label>
+                            <div class="layui-input-inline">
+                                <input type="text" value="${data.user_id}" readonly class="layui-input">
+                            </div>
+                            <label class="layui-form-label">用户名</label>
+                            <div class="layui-input-inline">
+                                <input type="text" value="${data.username}" readonly class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">推荐时间</label>
+                            <div class="layui-input-inline">
+                                <input type="text" value="${data.create_time}" readonly class="layui-input">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `);
+        
+        // 推荐学校列表
+        content.append(`
+            <div class="layui-colla-item">
+                <h2 class="layui-colla-title">推荐学校列表 (共${data.recommendations_data.length}所)</h2>
+                <div class="layui-colla-content layui-show" id="schools-container">
+                    <table class="layui-table">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>学校名称</th>
+                                <th>匹配度</th>
+                                <th>最低分</th>
+                                <th>平均分</th>
+                                <th>最高分</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="schools-tbody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `);
+        
+        // 填充学校信息
+        var tbody = $('#schools-tbody');
+        $.each(data.recommendations_data, function(index, school) {
+            tbody.append(`
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${school.name || '未知学校'}</td>
+                    <td><span class="school-score">${school.similarity || 0}%</span></td>
+                    <td>${school.min_score || '-'}</td>
+                    <td>${school.avg_score || '-'}</td>
+                    <td>${school.max_score || '-'}</td>
+                    <td>
+                        <a class="layui-btn layui-btn-xs" href="/school_detail/${school.school_id}" target="_blank">查看</a>
+                    </td>
+                </tr>
+            `);
+        });
+        
+        // 打开详情弹窗
+        layer.open({
+            type: 1,
+            title: '推荐历史详情',
+            area: ['800px', '600px'],
+            content: $('#detail-container'),
+            success: function() {
+                element.render('collapse');
+            }
+        });
+    }
+    
+    // 表单查询
+    form.on('submit(search)', function(data){
+        table.reload('history-table', {
+            where: data.field,
+            page: {
+                curr: 1
+            }
+        });
+        return false;
+    });
+    
+    // 重置按钮
+    $('#reset-btn').click(function(){
+        $('.layui-form-pane')[0].reset();
+        form.render();
+        table.reload('history-table', {
+            where: {},
+            page: {
+                curr: 1
+            }
+        });
+    });
+});
+</script>
+
+</body>
+</html> 

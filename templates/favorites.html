@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的收藏 - 高考志愿推荐系统</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <style>
+        .favorite-card {
+            transition: transform 0.3s;
+            margin-bottom: 20px;
+        }
+        .favorite-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .school-feature {
+            margin-right: 10px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        .feature-985 {
+            background-color: #ff85a2;
+            color: white;
+        }
+        .feature-211 {
+            background-color: #85c1ff;
+            color: white;
+        }
+        .page-header {
+            background-color: #f8f9fa;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 50px 0;
+        }
+        .empty-state img {
+            max-width: 200px;
+            margin-bottom: 30px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">高考志愿推荐系统</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/recommend">志愿推荐</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/schools">院校查询</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/favorites">我的收藏</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">退出登录</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <div class="container">
+            <h1>我的收藏</h1>
+            <p class="text-muted">管理您收藏的院校</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="favorites-container" class="row">
+            <!-- 收藏列表将在这里动态生成 -->
+        </div>
+        
+        <div id="empty-state" class="empty-state d-none">
+            <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/icons/bookmark-heart.svg" alt="没有收藏">
+            <h3>您还没有收藏任何学校</h3>
+            <p class="text-muted">浏览学校并点击收藏按钮，将学校添加到您的收藏列表</p>
+            <a href="/schools" class="btn btn-primary mt-3">浏览学校</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // 加载收藏列表
+            loadFavorites();
+            
+            // 删除收藏点击事件
+            $(document).on('click', '.remove-favorite', function() {
+                const favoriteId = $(this).data('id');
+                removeFavorite(favoriteId);
+            });
+        });
+        
+        function loadFavorites() {
+            axios.get('/recommend/get_favorites')
+                .then(function(response) {
+                    if (response.data.status === 'success') {
+                        const favorites = response.data.data.favorites;
+                        displayFavorites(favorites);
+                    }
+                })
+                .catch(function(error) {
+                    console.error('加载收藏失败:', error);
+                    alert('加载收藏列表失败，请重试');
+                });
+        }
+        
+        function displayFavorites(favorites) {
+            const container = $('#favorites-container');
+            container.empty();
+            
+            if (favorites.length === 0) {
+                $('#empty-state').removeClass('d-none');
+                return;
+            }
+            
+            $('#empty-state').addClass('d-none');
+            
+            favorites.forEach(function(favorite) {
+                const card = $(`
+                    <div class="col-md-4 mb-4">
+                        <div class="card favorite-card">
+                            <div class="card-body">
+                                <h5 class="card-title">${favorite.name}</h5>
+                                <div class="mb-2">
+                                    ${favorite.f985 === '1' ? '<span class="school-feature feature-985">985</span>' : ''}
+                                    ${favorite.f211 === '1' ? '<span class="school-feature feature-211">211</span>' : ''}
+                                </div>
+                                <p class="card-text">地址: ${favorite.address || '未知'}</p>
+                                <p class="card-text text-muted">
+                                    收藏时间: ${new Date(favorite.create_time).toLocaleString()}
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <a href="/school_detail/${favorite.school_id}" class="btn btn-primary">查看详情</a>
+                                    <button class="btn btn-outline-danger remove-favorite" data-id="${favorite.id}">
+                                        <i class="fas fa-trash-alt"></i> 取消收藏
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                
+                container.append(card);
+            });
+        }
+        
+        function removeFavorite(favoriteId) {
+            if (!confirm('确定要取消收藏这所学校吗？')) {
+                return;
+            }
+            
+            axios.post('/recommend/remove_favorite', { favorite_id: favoriteId })
+                .then(function(response) {
+                    if (response.data.status === 'success') {
+                        // 重新加载收藏列表
+                        loadFavorites();
+                    } else {
+                        alert(response.data.message || '取消收藏失败');
+                    }
+                })
+                .catch(function(error) {
+                    console.error('取消收藏失败:', error);
+                    alert('取消收藏失败，请重试');
+                });
+        }
+    </script>
+</body>
+</html> 

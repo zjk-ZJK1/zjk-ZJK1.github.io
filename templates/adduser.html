@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html class="x-admin-sm">
+    
+    <head>
+        <meta charset="UTF-8">
+        <title>新增用户</title>
+        <meta name="renderer" content="webkit">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi" />
+        <link rel="stylesheet" href="{{ url_for('static',filename='css/font.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static',filename='css/xadmin.css') }}">
+        <script src="{{ url_for('static',filename='lib/layui/layui.js') }}" charset="utf-8"></script>
+        <script type="text/javascript" src="{{ url_for('static',filename='js/xadmin.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static',filename='js/jquery.min.js') }}"></script>
+    </head>
+    <body>
+        <div class="layui-fluid lafite_add_alert">
+            <div class="layui-row">
+                <form class="layui-form">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">
+                            <span class="x-red">*</span>用户名
+                        </label>
+                        <div class="layui-input-block lafite_width_60">
+                            <input type="text" name="username" required lay-verify="required" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">
+                            <span class="x-red">*</span>密码
+                        </label>
+                        <div class="layui-input-block lafite_width_60">
+                            <input type="password" name="password" required lay-verify="required" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">
+                            <span class="x-red">*</span>真实姓名
+                        </label>
+                        <div class="layui-input-block lafite_width_60">
+                            <input type="text" name="nickname" required lay-verify="required" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">性别</label>
+                        <div class="layui-input-block lafite_width_60">
+                            <select name="sex">
+                                <option value="男">男</option>
+                                <option value="女">女</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">年龄</label>
+                        <div class="layui-input-block lafite_width_60">
+                            <input type="number" name="age" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">手机号</label>
+                        <div class="layui-input-block lafite_width_60">
+                            <input type="text" name="phone" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">邮箱</label>
+                        <div class="layui-input-block lafite_width_60">
+                            <input type="email" name="email" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">生日</label>
+                        <div class="layui-input-block lafite_width_60">
+                            <input type="text" name="birthday" id="birthday" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">身份证</label>
+                        <div class="layui-input-block lafite_width_60">
+                            <input type="text" name="card" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">简介</label>
+                        <div class="layui-input-block lafite_width_60">
+                            <textarea name="content" class="layui-textarea"></textarea>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">备注</label>
+                        <div class="layui-input-block lafite_width_60">
+                            <textarea name="remarks" class="layui-textarea"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <div class="layui-input-block">
+                            <button class="layui-btn" lay-submit lay-filter="formSubmit">保存</button>
+                            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <script>
+        layui.use(['form', 'laydate'], function(){
+            var form = layui.form;
+            var laydate = layui.laydate;
+            
+            // 日期选择器
+            laydate.render({
+                elem: '#birthday'
+            });
+
+            // 监听提交
+            form.on('submit(formSubmit)', function(data){
+                $.ajax({
+                    url: '/user/add',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data.field),
+                    success: function(res){
+                        if(res.code == 200) {
+                            layer.msg('添加成功', {icon: 1, time: 1000}, function(){
+                                // 关闭当前窗口
+                                var index = parent.layer.getFrameIndex(window.name);
+                                parent.layer.close(index);
+                                // 刷新父页面
+                                parent.location.reload();
+                            });
+                        } else {
+                            layer.msg('添加失败', {icon: 2});
+                        }
+                    },
+                    error: function(){
+                        layer.msg('添加失败', {icon: 2});
+                    }
+                });
+                return false;
+            });
+        });
+        </script>
+    </body>
+</html>

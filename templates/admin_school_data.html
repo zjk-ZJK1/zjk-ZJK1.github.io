@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>学校信息管理</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="{{ url_for('static',filename='lib/layui/css/layui.css') }}" media="all">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/admin.css') }}" media="all">
+</head>
+<body>
+
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-header">学校信息管理</div>
+        <div class="layui-card-body">
+            <div class="layui-form layui-form-pane" lay-filter="search-form">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">学校名称</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="name" placeholder="请输入学校名称" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">985工程</label>
+                        <div class="layui-input-inline">
+                            <select name="is_985">
+                                <option value="">全部</option>
+                                <option value="1">是</option>
+                                <option value="0">否</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">211工程</label>
+                        <div class="layui-input-inline">
+                            <select name="is_211">
+                                <option value="">全部</option>
+                                <option value="1">是</option>
+                                <option value="0">否</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <button class="layui-btn" lay-submit lay-filter="search">查询</button>
+                        <button class="layui-btn layui-btn-primary" id="reset-btn">重置</button>
+                    </div>
+                </div>
+            </div>
+            
+            <table id="school-table" lay-filter="school-table"></table>
+            
+            <script type="text/html" id="toolbar">
+                <div class="layui-btn-container">
+                    <button class="layui-btn layui-btn-sm" lay-event="import">批量导入</button>
+                    <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add">添加学校</button>
+                </div>
+            </script>
+            
+            <script type="text/html" id="operation">
+                <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+                <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="detail">详情</a>
+            </script>
+            
+            <!-- 修复模板语法 -->
+            {% raw %}
+            <script type="text/html" id="985-switch">
+                <input type="checkbox" name="f985" value="{{d.school_id}}" lay-skin="switch" lay-text="是|否" lay-filter="985-switch" {{ d.f985 == '1' ? 'checked' : '' }}>
+            </script>
+
+            <script type="text/html" id="211-switch">
+                <input type="checkbox" name="f211" value="{{d.school_id}}" lay-skin="switch" lay-text="是|否" lay-filter="211-switch" {{ d.f211 == '1' ? 'checked' : '' }}>
+            </script>
+            {% endraw %}
+        </div>
+    </div>
+</div>
+
+<!-- 编辑学校信息弹窗 -->
+<div id="edit-form-container" style="display: none; padding: 20px;">
+    <form class="layui-form" lay-filter="edit-form">
+        <input type="hidden" name="school_id">
+        <div class="layui-form-item">
+            <label class="layui-form-label">学校名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" placeholder="学校名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">主管部门</label>
+            <div class="layui-input-block">
+                <input type="text" name="belong" placeholder="主管部门" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">985工程</label>
+            <div class="layui-input-block">
+                <input type="checkbox" name="f985" value="1" lay-skin="switch" lay-text="是|否">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">211工程</label>
+            <div class="layui-input-block">
+                <input type="checkbox" name="f211" value="1" lay-skin="switch" lay-text="是|否">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">地址</label>
+            <div class="layui-input-block">
+                <input type="text" name="address" placeholder="地址" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">网站</label>
+            <div class="layui-input-block">
+                <input type="text" name="site" placeholder="网站" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">邮箱</label>
+            <div class="layui-input-block">
+                <input type="text" name="email" placeholder="邮箱" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">电话</label>
+            <div class="layui-input-block">
+                <input type="text" name="phone" placeholder="电话" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="save">保存</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="{{ url_for('static',filename='lib/layui/layui.js') }}"></script>
+<script>
+layui.use(['table', 'form', 'layer', 'jquery'], function(){
+    var table = layui.table,
+        form = layui.form,
+        layer = layui.layer,
+        $ = layui.jquery;
+    
+    // 初始化表格
+    table.render({
+        elem: '#school-table',
+        url: '/admin/api/school_data_list',
+        toolbar: '#toolbar',
+        defaultToolbar: ['filter', 'exports', 'print'],
+        cols: [[
+            {type: 'checkbox', fixed: 'left'},
+            {field: 'school_id', title: 'ID', width: 80, sort: true},
+            {field: 'name', title: '学校名称', width: 200},
+            {field: 'belong', title: '主管部门', width: 180},
+            {title: '985工程', width: 100, templet: '#985-switch'},
+            {title: '211工程', width: 100, templet: '#211-switch'},
+            {field: 'address', title: '地址', width: 250},
+            {field: 'site', title: '网站', width: 200},
+            {title: '操作', width: 150, toolbar: '#operation', fixed: 'right'}
+        ]],
+        page: true,
+        limit: 15,
+        limits: [15, 30, 50, 100],
+        response: {
+            statusCode: 'success'
+        },
+        parseData: function(res) {
+            return {
+                "code": res.status,
+                "msg": res.message || '',
+                "count": res.data.total,
+                "data": res.data.schools
+            };
+        }
+    });
+    
+    // 表格工具栏事件
+    table.on('toolbar(school-table)', function(obj){
+        var checkStatus = table.checkStatus(obj.config.id);
+        switch(obj.event){
+            case 'import':
+                layer.msg('暂未实现批量导入功能');
+                break;
+            case 'add':
+                layer.msg('暂未实现添加功能');
+                break;
+        };
+    });
+    
+    // 行工具条事件
+    table.on('tool(school-table)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'edit'){
+            // 填充表单
+            form.val('edit-form', {
+                "school_id": data.school_id,
+                "name": data.name,
+                "belong": data.belong,
+                "f985": data.f985 === '1',
+                "f211": data.f211 === '1',
+                "address": data.address,
+                "site": data.site,
+                "email": data.email,
+                "phone": data.phone
+            });
+            
+            // 打开编辑弹窗
+            layer.open({
+                type: 1,
+                title: '编辑学校信息',
+                area: ['500px', '680px'],
+                content: $('#edit-form-container'),
+                success: function() {
+                    form.render();
+                }
+            });
+        } else if(obj.event === 'detail'){
+            // 跳转到学校详情页
+            window.open('/school_detail/' + data.school_id, '_blank');
+        }
+    });
+    
+    // 985/211开关事件
+    form.on('switch(985-switch)', function(obj){
+        var schoolId = this.value;
+        var isChecked = obj.elem.checked ? '1' : '0';
+        
+        $.ajax({
+            url: '/admin/api/update_school',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                school_id: schoolId,
+                f985: isChecked
+            }),
+            success: function(res) {
+                if (res.status === 'success') {
+                    layer.msg('修改成功');
+                } else {
+                    layer.msg(res.message || '修改失败');
+                    // 恢复开关状态
+                    $(obj.elem).prop('checked', !obj.elem.checked);
+                    form.render('checkbox');
+                }
+            },
+            error: function() {
+                layer.msg('修改失败，请重试');
+                // 恢复开关状态
+                $(obj.elem).prop('checked', !obj.elem.checked);
+                form.render('checkbox');
+            }
+        });
+    });
+    
+    form.on('switch(211-switch)', function(obj){
+        var schoolId = this.value;
+        var isChecked = obj.elem.checked ? '1' : '0';
+        
+        $.ajax({
+            url: '/admin/api/update_school',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                school_id: schoolId,
+                f211: isChecked
+            }),
+            success: function(res) {
+                if (res.status === 'success') {
+                    layer.msg('修改成功');
+                } else {
+                    layer.msg(res.message || '修改失败');
+                    // 恢复开关状态
+                    $(obj.elem).prop('checked', !obj.elem.checked);
+                    form.render('checkbox');
+                }
+            },
+            error: function() {
+                layer.msg('修改失败，请重试');
+                // 恢复开关状态
+                $(obj.elem).prop('checked', !obj.elem.checked);
+                form.render('checkbox');
+            }
+        });
+    });
+    
+    // 表单查询
+    form.on('submit(search)', function(data){
+        table.reload('school-table', {
+            where: data.field,
+            page: {
+                curr: 1
+            }
+        });
+        return false;
+    });
+    
+    // 重置按钮
+    $('#reset-btn').click(function(){
+        $('.layui-form-pane')[0].reset();
+        form.render();
+        table.reload('school-table', {
+            where: {},
+            page: {
+                curr: 1
+            }
+        });
+    });
+    
+    // 保存表单
+    form.on('submit(save)', function(data){
+        // 处理多选框
+        if (!data.field.f985) {
+            data.field.f985 = '0';
+        }
+        if (!data.field.f211) {
+            data.field.f211 = '0';
+        }
+        
+        $.ajax({
+            url: '/admin/api/update_school',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data.field),
+            success: function(res) {
+                if (res.status === 'success') {
+                    layer.msg('保存成功');
+                    layer.closeAll('page');
+                    table.reload('school-table');
+                } else {
+                    layer.msg(res.message || '保存失败');
+                }
+            },
+            error: function() {
+                layer.msg('保存失败，请重试');
+            }
+        });
+        return false;
+    });
+});
+</script>
+
+</body>
+</html> 
